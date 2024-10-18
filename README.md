@@ -49,21 +49,21 @@ A instância EC2 é configurada para instalar e iniciar o Nginx automaticamente 
    git clone https://github.com/dadagss/Desafio---VExpenses.git
    cd <repositorio_onde_foi_clonado>
 2. Inicialize o Terraform:
-```bash
-terraform init
-```
+  ```bash
+  terraform init
+  ```
 3. Visualize o plano em execução:
-```bash
-terraform apply
-```
+  ```bash
+  terraform apply
+  ```
 Confirme digitando ```yes``` quando verificar se todos os dados estão corretos.
 Apos a execução os outputs serão exibidos no terminal, incluindo o IP da instância do EC2
 4. Copie o comando SSH fornecido no output ssh_command e execute no terminal para acessar a instância:
-```bash
-ssh -i <caminho_da_chave_privada> ec2-user@<ec2_public_ip>
-```
+  ```bash
+  ssh -i <caminho_da_chave_privada> ec2-user@<ec2_public_ip>
+  ```
 5. Nota:
 Para evitar custos desnecessários e destrui a instância:
-```bash
-terraform destroy
-```
+  ```bash
+  terraform destroy
+  ```
