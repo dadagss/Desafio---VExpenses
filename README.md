@@ -1,4 +1,7 @@
-# Desafio: Automação com Terraform para Ambiente AWS
+# Projeto Terraform - VExpenses
+
+## Descrição do Projeto
+Este projeto utiliza Terraform para provisionar uma infraestrutura básica na AWS. A configuração inclui a criação de uma VPC, sub-rede, grupo de segurança, instância EC2 com Debian 12, e automação da instalação do servidor Nginx. As melhorias implementadas incluem ajustes de segurança e otimizações na automação.
 
 ## 1. Análise Técnica do Código Terraform
 
