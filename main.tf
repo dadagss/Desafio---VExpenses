@@ -82,19 +82,33 @@ resource "aws_route_table_association" "main_association" {
 
 resource "aws_security_group" "main_sg" {
   name        = "${var.projeto}-${var.candidato}-sg"
-  description = "Permitir SSH de qualquer lugar e todo o tráfego de saída"
+  description = "Permitir SSH de IP específico e todo o tráfego de saída"
   vpc_id      = aws_vpc.main_vpc.id
-
-
 
   # Regras de entrada
   ingress {
-  description = "Allow SSH from specific IP"
-  from_port   = 22
-  to_port     = 22
-  protocol    = "tcp"
-  cidr_blocks = [var.admin_ip]
-  }  
+    description = "Allow SSH from specific IP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.admin_ip]
+  }
+
+   ingress {
+    description = "Allow HTTP traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTP de qualquer IP
+  }
+
+  ingress {
+    description = "Allow HTTPS traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTPS de qualquer IP
+  }
 
   # Regras de saída
   egress {
@@ -109,6 +123,18 @@ resource "aws_security_group" "main_sg" {
   tags = {
     Name = "${var.projeto}-${var.candidato}-sg"
   }
+} 
+
+# Topico SNS para monitorar a CPU
+resource "aws_sns_topic" "high_cpu_alerts" {
+  name = "${var.projeto}-${var.candidato}-high-cpu-alerts"
+}
+
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.high_cpu_alerts.arn
+  protocol  = "email" # Pode ser 'email', 'sms', etc.
+  endpoint  = "seu_email@example.com" # Substitua pelo seu e-mail
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
@@ -125,14 +151,13 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
     InstanceId = aws_instance.debian_ec2.id
   }
   alarm_actions = [
-    "arn:aws:sns:us-east-1:123456789012:Your_SNS_Topic" # Substitua pelo ARN do seu tópico SNS
+    aws_sns_topic.high_cpu_alerts.arn 
   ]
   ok_actions = [
-    "arn:aws:sns:us-east-1:123456789012:Your_SNS_Topic"
+    aws_sns_topic.high_cpu_alerts.arn 
   ]
   actions_enabled = true
 }
-
 
 data "aws_ami" "debian12" {
   most_recent = true
@@ -166,15 +191,23 @@ resource "aws_instance" "debian_ec2" {
     encrypted = true
   }
 
-user_data = <<-EOF
+  user_data = <<-EOF
               #!/bin/bash
               apt-get update -y
               apt-get upgrade -y
               apt-get install -y nginx
+
+              # Desabilita o login do usuário root
+              echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
+
+              reinicializa o serviço para aplicar as mudanças
+              systemctl restart sshd
+
+              #inicializa a nginx
               systemctl start nginx
               systemctl enable nginx
               EOF
-              
+
   tags = {
     Name = "${var.projeto}-${var.candidato}-ec2"
   }
@@ -201,4 +234,3 @@ output "ssh_command" {
   value       = "ssh -i ${tls_private_key.ec2_key.private_key_pem} ec2-user@${aws_instance.debian_ec2.public_ip}"
   sensitive   = true
 }
-
