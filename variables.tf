@@ -13,6 +13,5 @@ variable "candidato" {
 
 variable "admin_ip" {
   description = "IP do administrador para acesso SSH"
-  type        = string
-  default     = "123.123.123.123" # Altere para o IP do administrador
+  type        = string 
 }
