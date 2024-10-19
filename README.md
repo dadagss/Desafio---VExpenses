@@ -38,11 +38,14 @@ Desafio---VExpenses/
 ## Variáveis
 | Nome             | Descrição                             | Valor Padrão           |
 |------------------|---------------------------------------|------------------------|
+| `projeto`        | Nome do projeto                       | `VExpenses`            |
+| `candidato`      | Nome do candidato                     | `Daniel_Guimarães_Silva`|
 | `aws_region`     | A região AWS para criar os recursos   | `us-east-1`            |
 | `vpc_cidr`       | CIDR block da VPC                     | `10.0.0.0/16`          |
 | `subnet_cidr`    | CIDR block da Sub-rede                | `10.0.1.0/24`          |
 | `instance_type`  | Tipo da instância EC2                 | `t2.micro`             |
-| `admin_ip`       | IP permitido para acesso SSH          | `0.0.0.0/0`            |
+| `admin_ip`       | IP permitido para acesso SSH          | *(Nenhum valor padrão)* |
+
 
 ## Como executar
 1. Clone este repositório:
