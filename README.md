@@ -33,7 +33,7 @@ Desafio---VExpenses/
 ├── variables.tf
 ├── outputs.tf
 ├── README.md
-
+```
 | Nome             | Descrição                             | Valor Padrão           |
 |------------------|---------------------------------------|------------------------|
 | `aws_region`     | A região AWS para criar os recursos   | `us-east-1`            |
@@ -52,6 +52,7 @@ cd Desafio---VExpenses
 2. Inicialize o Terraform:
 ```bash
 terraform init
+```
 
 3. Visualize o plano de execução:
 ```bash
@@ -102,12 +103,3 @@ Esta seção demonstra como os requisitos do desafio foram atendidos:
 - [Documentação do Terraform](https://www.terraform.io/docs)
 - [AWS EC2 Documentation](https://docs.aws.amazon.com/ec2/index.html)
 
-
-### Melhorias na Estrutura
-1. **Organização em Seções**: Melhorei a organização geral do `README.md`, incluindo um índice que facilita a navegação para as seções específicas.
-2. **Tabela de Variáveis**: A tabela ajuda a entender rapidamente os parâmetros configuráveis do Terraform.
-3. **Detalhes na Seção de Recursos Criados**: Inclui uma descrição mais detalhada dos recursos para que os avaliadores entendam claramente a infraestrutura que será provisionada.
-4. **Instruções Claras de Execução**: Adicionei comandos específicos e claros para facilitar o processo de inicialização e destruição dos recursos.
-5. **Critérios de Avaliação e Melhorias**: Descrevi as melhorias que você fez e como elas atendem aos requisitos do desafio, mostrando seu entendimento das boas práticas de infraestrutura e segurança.
-
-Essa versão do `README.md` deve apresentar um nível de profissionalismo e atenção aos detalhes, refletindo um bom conhecimento de infraestrutura como código e práticas de DevOps.
