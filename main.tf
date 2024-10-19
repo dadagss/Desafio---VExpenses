@@ -170,6 +170,37 @@ data "aws_ami" "debian12" {
 
 # Cria uma instância EC2 usando a AMI Debian 12
 resource "aws_instance" "debian_ec2" {
-  ami             = data.aws_ami.debian12.id  # ID da AMI a ser utilizada
-  instance_type   = var.instance_type  # Tipo da instância EC2
-  subnet
+  ami           = data.aws_ami.debian12.id  # ID da AMI a ser utilizada
+  instance_type = var.instance_type  # Tipo da instância EC2
+  subnet_id     = aws_subnet.main_subnet.id  # ID da sub-rede onde a instância será criada
+  key_name      = aws_key_pair.ec2_key_pair.key_name  # Nome do par de chaves a ser utilizado para acessar a instância
+  security_groups = [aws_security_group.main_sg.name]  # Associa o grupo de segurança à instância
+
+  tags = {
+    Name = "${var.projeto}-${var.candidato}-ec2-instance"  # Nome da instância formatado
+  }
+}
+
+# Adiciona o bloco user_data, que contém um script para ser executado na inicialização da instância EC2
+user_data = <<-EOF
+              #!/bin/bash  # Especifica que o script deve ser executado com o interpretador Bash
+              
+              apt-get update -y  # Atualiza a lista de pacotes disponíveis
+              apt-get upgrade -y  # Atualiza todos os pacotes instalados para as versões mais recentes
+              apt-get install -y nginx  # Instala o servidor web Nginx
+
+              # Desabilita o login do usuário root por SSH
+              echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
+
+              # Reinicializa o serviço SSH para aplicar as mudanças na configuração
+              systemctl restart sshd
+
+              # Inicializa o Nginx e habilita-o para iniciar automaticamente no boot
+              systemctl start nginx
+              systemctl enable nginx
+              EOF
+
+# Define as tags para a instância, incluindo o nome formatado com o projeto e o candidato
+tags = {
+    Name = "${var.projeto}-${var.candidato}-ec2-instance"  # Nome da instância formatado
+}
