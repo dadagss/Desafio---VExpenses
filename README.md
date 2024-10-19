@@ -29,11 +29,13 @@ A solução cria os seguintes recursos:
 ## Estrutura do Projeto
 ```bash
 Desafio---VExpenses/
-├── main.tf
-├── variables.tf
-├── outputs.tf
-├── README.md
+├── main.tf          # Define os recursos da AWS (VPC, EC2, etc.)
+├── variables.tf     # Define as variáveis do projeto
+├── outputs.tf       # Define os outputs do projeto
+├── README.md        # Documentação do projeto
 ```
+
+## Variáveis
 | Nome             | Descrição                             | Valor Padrão           |
 |------------------|---------------------------------------|------------------------|
 | `aws_region`     | A região AWS para criar os recursos   | `us-east-1`            |
