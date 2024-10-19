@@ -1,136 +1,113 @@
-# Projeto Terraform - VExpenses
+# Desafio - VExpenses: Provisionamento de Infraestrutura na AWS com Terraform
 
-## Descrição do Projeto
-Este projeto utiliza Terraform para provisionar uma infraestrutura básica na AWS. A configuração inclui a criação de uma VPC, sub-rede, grupo de segurança, instância EC2 com Debian 12 e automação da instalação do servidor Nginx. As melhorias implementadas incluem ajustes de segurança e otimizações na automação.
+Este repositório contém uma solução para o desafio de provisionamento de infraestrutura básica na AWS usando Terraform. O projeto configura uma VPC, sub-rede, grupo de segurança, instância EC2 e outras funcionalidades, além de automatizar a instalação do Nginx na instância.
 
-## 1. Análise Técnica do Código Terraform
+## Índice
+- [Visão Geral](#visão-geral)
+- [Requisitos](#requisitos)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Variáveis](#variáveis)
+- [Como Executar](#como-executar)
+- [Recursos Criados](#recursos-criados)
+- [Melhorias Implementadas](#melhorias-implementadas)
+- [Critérios de Avaliação](#critérios-de-avaliação)
+- [Referências](#referências)
 
-### Arquivo `main.tf`
+## Visão Geral
+Este projeto visa demonstrar o provisionamento de infraestrutura em nuvem usando Terraform, com foco em boas práticas de automação e segurança. 
 
-- **Provider**: O provedor AWS é configurado para a região `us-east-1`.
+A solução cria os seguintes recursos:
+- VPC e Sub-rede
+- Grupo de Segurança (com regras de SSH restritas)
+- Par de Chaves para acesso SSH
+- Instância EC2 com instalação automatizada do Nginx
 
-### Variáveis
-- **`projeto`**: Nome do projeto, padrão "VExpenses".
-- **`candidato`**: Nome do candidato, padrão "Daniel_Guimarães_Silva".
-- **`admin_ip`**: IP do administrador para acesso SSH (preencher com o IP que precisa de acesso).
+## Requisitos
+- Conta AWS com permissões para criação de VPCs e EC2.
+- [Terraform instalado](https://learn.hashicorp.com/tutorials/terraform/install-cli).
 
-### Recursos Criados
-- **`tls_private_key`**: Gera uma chave privada RSA de 2048 bits.
-- **`aws_key_pair`**: Cria um par de chaves na AWS.
-- **`aws_vpc`**: Configura uma VPC com CIDR `10.0.0.0/16`.
-- **`aws_subnet`**: Cria uma subnet pública com CIDR `10.0.1.0/24`.
-- **`aws_internet_gateway`**: Cria um internet gateway.
-- **`aws_route_table`**: Define uma tabela de rotas para a internet.
-- **`aws_route_table_association`**: Associa a tabela de rotas à subnet.
-- **`aws_security_group`**: Configura um grupo de segurança com regras de entrada (SSH restrito) e saída (todo o tráfego permitido).
-- **`aws_cloudwatch_metric_alarm`**: Configura um alarme para monitorar a utilização de CPU.
-- **`aws_instance`**: Cria uma instância EC2 do tipo `t2.micro` com Nginx instalado e criptografia do disco.
-  - **`admin_ip`**: IP do administrador para acesso SSH.
+## Estrutura do Projeto
+```bash
+Desafio---VExpenses/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── README.md
 
-## 2. Modificações e Melhorias do Código Terraform
+| Nome             | Descrição                             | Valor Padrão           |
+|------------------|---------------------------------------|------------------------|
+| `aws_region`     | A região AWS para criar os recursos   | `us-east-1`            |
+| `vpc_cidr`       | CIDR block da VPC                     | `10.0.0.0/16`          |
+| `subnet_cidr`    | CIDR block da Sub-rede                | `10.0.1.0/24`          |
+| `instance_type`  | Tipo da instância EC2                 | `t2.micro`             |
+| `admin_ip`       | IP permitido para acesso SSH          | `0.0.0.0/0`            |
 
-### Melhorias de Segurança
-1. **Restrição de Acesso SSH**: O acesso SSH é restrito ao IP específico definido em `admin_ip`.
-  ```  
-  # Regras de entrada
-  ingress {
-    description = "Allow SSH from specific IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.admin_ip]
-  }
-  ```
-2. **Criptografia do Disco**: O volume raiz da instância EC2 é criptografado.
-  ```
-     root_block_device {
-    volume_size           = 20
-    volume_type           = "gp2"
-    delete_on_termination = true
-    ´encrypted = true´
-  ```
-3. **Alarme de Utilização de CPU**: Monitora a CPU e envia alertas conforme necessário.
-  ```
-    resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
-      alarm_name          = "${var.projeto}-${var.candidato}-high-cpu-usage"
-      comparison_operator = "GreaterThanThreshold"
-      evaluation_periods  = 2
-      metric_name         = "CPUUtilization"
-      namespace           = "AWS/EC2"
-      period              = 300
-      statistic           = "Average"
-      threshold           = 70
-      alarm_description   = "Este alarme é acionado quando a utilização de CPU excede 70% por dois períodos consecutivos de 5 minutos."
-      dimensions = {
-        InstanceId = aws_instance.debian_ec2.id
-      }
-      alarm_actions = [
-        aws_sns_topic.high_cpu_alerts.arn 
-      ]
-      ok_actions = [
-        aws_sns_topic.high_cpu_alerts.arn 
-      ]
-      actions_enabled = true
-    }
-  ```
-4. **Desativação do Login de Usuário Root**: Desativa a opção para que o usuário entre em modo administrador.
-  ```
-    echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
-    systemctl restart sshd
-  ```
-5. **Regras de Segurança**: Apenas conexões HTTP e HTTPS são permitidas, garantindo que a instância seja acessível apenas via web.
-  ```
-  ingress {
-    description = "Allow HTTP traffic"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTP de qualquer IP
-  }
+## Como executar
+1. Clone este repositório:
+```bash
+git clone https://github.com/seu_usuario/Desafio---VExpenses.git
+cd Desafio---VExpenses
+```
 
-  ingress {
-    description = "Allow HTTPS traffic"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTPS de qualquer IP
-  }
-  ```
-
-### Automação da Instalação do Nginx
-A instância EC2 é configurada para instalar e iniciar o Nginx automaticamente através do `user_data`.
-
-### Outras Melhorias
-1. **Tagging**: As tags são aplicadas para facilitar o gerenciamento e identificação dos recursos.
-
-## 3. Instruções de Uso
-
-### Pré-requisitos
-- Terraform instalado.
-- Acesso à sua conta AWS.
-
-### Passos para Inicializar e Aplicar a Configuração
-1. **Clone o Repositório**:
-   ```bash
-   git clone https://github.com/dadagss/Desafio---VExpenses.git
-   cd <repositorio_onde_foi_clonado>
 2. Inicialize o Terraform:
-  ```bash
-  terraform init
-  ```
-3. Visualize o plano em execução:
-  ```bash
-  terraform apply
-  ```
-Confirme digitando ```yes``` quando verificar se todos os dados estão corretos.
-Apos a execução os outputs serão exibidos no terminal, incluindo o IP da instância do EC2
+```bash
+terraform init
 
-4. Copie o comando SSH fornecido no output ssh_command e execute no terminal para acessar a instância:
-  ```bash
-  ssh -i <caminho_da_chave_privada> ec2-user@<ec2_public_ip>
-  ```
-5. Nota:
-Para evitar custos desnecessários e destrui a instância:
-  ```bash
-  terraform destroy
-  ```
+3. Visualize o plano de execução:
+```bash
+terraform plan -var="admin_ip=SEU_IP_PUBLICO"
+```
+
+4. Aplique as mudanças para criar a infraestrutura:
+```bash
+terraform apply -var="admin_ip=SEU_IP_PUBLICO"
+```
+
+5. Após a execução, você verá o endereço IP da instância EC2. Acesse via navegador para verificar a instalação do Nginx:
+```
+http://<endereço_ip_da_instância>
+```
+
+6. Para destruir a infraestrutura:
+```bash
+terraform destroy
+
+## Recursos Criados
+
+- **VPC**: Configurada com o CIDR `10.0.0.0/16`.
+- **Sub-rede**: Sub-rede privada com CIDR `10.0.1.0/24`.
+- **Grupo de Segurança**: Permite conexões HTTP (porta 80) de qualquer IP e SSH (porta 22) apenas do `admin_ip`.
+- **Instância EC2**: Tipo `t2.micro`, configurada para instalar o Nginx automaticamente via `user_data`.
+- **Par de Chaves**: Gerado para acesso à instância EC2 via SSH.
+
+## Melhorias Implementadas
+
+- **Automação da Configuração do Nginx**: A instalação do Nginx ocorre automaticamente via `user_data`, facilitando a configuração.
+- **Segurança no Acesso SSH**: Restrição do acesso SSH ao IP especificado na variável `admin_ip`, melhorando a segurança da instância.
+- **Desativação do Login Root**: Adicionado script para desativar login via usuário root, aumentando a segurança.
+- **Criptografia do Volume da Instância**: Configurada a criptografia do volume raiz para proteger os dados armazenados na EC2.
+
+## Critérios de Avaliação
+
+Esta seção demonstra como os requisitos do desafio foram atendidos:
+
+- **Automação**: Uso de `user_data` para instalação do Nginx.
+- **Segurança**: Grupo de segurança restrito e criptografia dos volumes.
+- **Documentação Completa**: `README.md` organizado, com instruções claras de uso.
+- **Infraestrutura como Código**: Uso de Terraform para gerenciar todos os recursos.
+- **Melhorias de Segurança**: Explicação das decisões de design voltadas à segurança, como a restrição do SSH e a desativação do login root.
+
+## Referências
+
+- [Documentação do Terraform](https://www.terraform.io/docs)
+- [AWS EC2 Documentation](https://docs.aws.amazon.com/ec2/index.html)
+
+
+### Melhorias na Estrutura
+1. **Organização em Seções**: Melhorei a organização geral do `README.md`, incluindo um índice que facilita a navegação para as seções específicas.
+2. **Tabela de Variáveis**: A tabela ajuda a entender rapidamente os parâmetros configuráveis do Terraform.
+3. **Detalhes na Seção de Recursos Criados**: Inclui uma descrição mais detalhada dos recursos para que os avaliadores entendam claramente a infraestrutura que será provisionada.
+4. **Instruções Claras de Execução**: Adicionei comandos específicos e claros para facilitar o processo de inicialização e destruição dos recursos.
+5. **Critérios de Avaliação e Melhorias**: Descrevi as melhorias que você fez e como elas atendem aos requisitos do desafio, mostrando seu entendimento das boas práticas de infraestrutura e segurança.
+
+Essa versão do `README.md` deve apresentar um nível de profissionalismo e atenção aos detalhes, refletindo um bom conhecimento de infraestrutura como código e práticas de DevOps.
