@@ -200,10 +200,10 @@ resource "aws_instance" "debian_ec2" {
               # Desabilita o login do usuário root
               echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
 
-              reinicializa o serviço para aplicar as mudanças
+              # reinicializa o serviço para aplicar as mudanças
               systemctl restart sshd
 
-              #inicializa a nginx
+              # inicializa a nginx
               systemctl start nginx
               systemctl enable nginx
               EOF

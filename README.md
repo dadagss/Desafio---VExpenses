@@ -31,10 +31,72 @@ Este projeto utiliza Terraform para provisionar uma infraestrutura básica na AW
 
 ### Melhorias de Segurança
 1. **Restrição de Acesso SSH**: O acesso SSH é restrito ao IP específico definido em `admin_ip`.
+  ```  
+  # Regras de entrada
+  ingress {
+    description = "Allow SSH from specific IP"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.admin_ip]
+  }
+  ```
 2. **Criptografia do Disco**: O volume raiz da instância EC2 é criptografado.
+   ```
+     root_block_device {
+    volume_size           = 20
+    volume_type           = "gp2"
+    delete_on_termination = true
+    ´encrypted = true´
+  
+  ```
 3. **Alarme de Utilização de CPU**: Monitora a CPU e envia alertas conforme necessário.
+```
+resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
+  alarm_name          = "${var.projeto}-${var.candidato}-high-cpu-usage"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 300
+  statistic           = "Average"
+  threshold           = 70
+  alarm_description   = "Este alarme é acionado quando a utilização de CPU excede 70% por dois períodos consecutivos de 5 minutos."
+  dimensions = {
+    InstanceId = aws_instance.debian_ec2.id
+  }
+  alarm_actions = [
+    aws_sns_topic.high_cpu_alerts.arn 
+  ]
+  ok_actions = [
+    aws_sns_topic.high_cpu_alerts.arn 
+  ]
+  actions_enabled = true
+}
+```
 4. **Desativação do Login de Usuário Root**: Desativa a opção para que o usuário entre em modo administrador.
+```
+echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
+systemctl restart sshd
+```
 5. **Regras de Segurança**: Apenas conexões HTTP e HTTPS são permitidas, garantindo que a instância seja acessível apenas via web.
+  ```
+  ingress {
+    description = "Allow HTTP traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTP de qualquer IP
+  }
+
+  ingress {
+    description = "Allow HTTPS traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Permite acesso HTTPS de qualquer IP
+  }
+  ```
 
 ### Automação da Instalação do Nginx
 A instância EC2 é configurada para instalar e iniciar o Nginx automaticamente através do `user_data`.
