@@ -42,43 +42,42 @@ Este projeto utiliza Terraform para provisionar uma infraestrutura básica na AW
   }
   ```
 2. **Criptografia do Disco**: O volume raiz da instância EC2 é criptografado.
-   ```
+  ```
      root_block_device {
     volume_size           = 20
     volume_type           = "gp2"
     delete_on_termination = true
     ´encrypted = true´
-  
   ```
 3. **Alarme de Utilização de CPU**: Monitora a CPU e envia alertas conforme necessário.
-```
-resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
-  alarm_name          = "${var.projeto}-${var.candidato}-high-cpu-usage"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 300
-  statistic           = "Average"
-  threshold           = 70
-  alarm_description   = "Este alarme é acionado quando a utilização de CPU excede 70% por dois períodos consecutivos de 5 minutos."
-  dimensions = {
-    InstanceId = aws_instance.debian_ec2.id
-  }
-  alarm_actions = [
-    aws_sns_topic.high_cpu_alerts.arn 
-  ]
-  ok_actions = [
-    aws_sns_topic.high_cpu_alerts.arn 
-  ]
-  actions_enabled = true
-}
-```
+  ```
+    resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
+      alarm_name          = "${var.projeto}-${var.candidato}-high-cpu-usage"
+      comparison_operator = "GreaterThanThreshold"
+      evaluation_periods  = 2
+      metric_name         = "CPUUtilization"
+      namespace           = "AWS/EC2"
+      period              = 300
+      statistic           = "Average"
+      threshold           = 70
+      alarm_description   = "Este alarme é acionado quando a utilização de CPU excede 70% por dois períodos consecutivos de 5 minutos."
+      dimensions = {
+        InstanceId = aws_instance.debian_ec2.id
+      }
+      alarm_actions = [
+        aws_sns_topic.high_cpu_alerts.arn 
+      ]
+      ok_actions = [
+        aws_sns_topic.high_cpu_alerts.arn 
+      ]
+      actions_enabled = true
+    }
+  ```
 4. **Desativação do Login de Usuário Root**: Desativa a opção para que o usuário entre em modo administrador.
-```
-echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
-systemctl restart sshd
-```
+  ```
+    echo 'PermitRootLogin no' >> /etc/ssh/sshd_config 
+    systemctl restart sshd
+  ```
 5. **Regras de Segurança**: Apenas conexões HTTP e HTTPS são permitidas, garantindo que a instância seja acessível apenas via web.
   ```
   ingress {
