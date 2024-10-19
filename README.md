@@ -71,7 +71,7 @@ http://<endereço_ip_da_instância>
 6. Para destruir a infraestrutura:
 ```bash
 terraform destroy
-
+```
 ## Recursos Criados
 
 - **VPC**: Configurada com o CIDR `10.0.0.0/16`.
